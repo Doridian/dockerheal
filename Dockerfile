@@ -9,5 +9,8 @@ RUN go mod download && \
     go build -o /dockerheal .
 
 FROM scratch
+COPY LICENSE /LICENSE
+
 COPY --from=builder --chown=0:0 --chmod=755 /dockerheal /dockerheal
+
 ENTRYPOINT ["/dockerheal"]
