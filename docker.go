@@ -79,9 +79,9 @@ func (c *DockerhealClient) Listen(ctx context.Context) error {
 	}
 }
 
-func (c *DockerhealClient) reportHealth(containerID string, health string) {
-	log.Printf("Container %s reported health %s", containerID, health)
-	if health == "unhealthy" {
+func (c *DockerhealClient) reportHealth(containerID string, healthState string) {
+	log.Printf("Container %s reported health %s", containerID, healthState)
+	if healthState == "unhealthy" {
 		go c.restartContainer(containerID)
 	}
 }
