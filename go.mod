@@ -1,4 +1,4 @@
-module github.com/FoxDenHome/dockerheal
+module github.com/Doridian/dockerheal
 
 go 1.20
 
