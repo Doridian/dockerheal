@@ -26,4 +26,4 @@ jobs:
           build-args: |
             GIT_REVISION=${{ github.sha }}
           tags: |
-            ghcr.io/foxdenhome/dockerheal/dockerheal:latest
+            ghcr.io/doridian/dockerheal/dockerheal:latest
