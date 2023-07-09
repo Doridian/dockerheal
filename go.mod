@@ -2,7 +2,7 @@ module github.com/Doridian/dockerheal
 
 go 1.20
 
-require github.com/docker/docker v24.0.3+incompatible
+require github.com/docker/docker v24.0.4+incompatible
 
 require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
