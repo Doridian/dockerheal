@@ -2,7 +2,7 @@ module github.com/Doridian/dockerheal
 
 go 1.21
 
-toolchain go1.22.6
+toolchain go1.23.0
 
 require github.com/docker/docker v27.1.1+incompatible
 
