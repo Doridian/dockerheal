@@ -27,7 +27,7 @@ func NewDockerhealClient() (*DockerhealClient, error) {
 }
 
 func (c *DockerhealClient) CheckOnce(ctx context.Context) error {
-	containers, err := c.client.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := c.client.ContainerList(ctx, container.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (c *DockerhealClient) Listen(ctx context.Context) error {
 				continue
 			}
 
-			actionSplit := strings.Split(msg.Action, ":")
+			actionSplit := strings.Split(string(msg.Action), ":")
 			if actionSplit[0] != "health_status" || len(actionSplit) < 2 {
 				continue
 			}
