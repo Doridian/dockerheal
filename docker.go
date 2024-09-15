@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/client"
@@ -38,6 +37,11 @@ func (c *DockerhealClient) CheckOnce(ctx context.Context) error {
 			return err
 		}
 
+		if containerDetails.State.Dead || containerDetails.State.OOMKilled {
+			c.reportHealth(container.ID, "dead")
+			continue
+		}
+
 		if containerDetails.State.Health == nil {
 			continue
 		}
@@ -49,7 +53,7 @@ func (c *DockerhealClient) CheckOnce(ctx context.Context) error {
 }
 
 func (c *DockerhealClient) Listen(ctx context.Context) error {
-	msgChan, errChan := c.client.Events(ctx, types.EventsOptions{})
+	msgChan, errChan := c.client.Events(ctx, events.ListOptions{})
 
 	err := c.CheckOnce(ctx)
 	if err != nil {
@@ -81,7 +85,7 @@ func (c *DockerhealClient) Listen(ctx context.Context) error {
 
 func (c *DockerhealClient) reportHealth(containerID string, healthState string) {
 	log.Printf("Container %s reported health %s", containerID, healthState)
-	if healthState == "unhealthy" {
+	if healthState == "unhealthy" || healthState == "dead" {
 		go c.restartContainer(containerID)
 	}
 }
