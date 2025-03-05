@@ -1,6 +1,6 @@
 module github.com/Doridian/dockerheal
 
-go 1.22.7
+go 1.23.0
 
 toolchain go1.24.1
 
@@ -29,7 +29,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 )
