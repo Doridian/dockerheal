@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
@@ -91,6 +92,15 @@ func (c *DockerhealClient) reportHealth(containerID string, healthState string) 
 }
 
 func (c *DockerhealClient) restartContainer(containerID string) {
+	disableFile := os.Getenv("DISABLE_FILE")
+	if disableFile != "" {
+		st, err := os.Stat(disableFile)
+		if err == nil && st.Size() > 0 {
+			log.Printf("Disabled! Skipping restart of container %s", containerID)
+			return
+		}
+	}
+
 	log.Printf("Restarting container %s", containerID)
 	err := c.client.ContainerRestart(context.Background(), containerID, container.StopOptions{})
 	if err != nil {

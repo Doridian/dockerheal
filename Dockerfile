@@ -18,6 +18,8 @@ RUN go build -ldflags='-s -w' -trimpath -o /dockerheal .
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} scratch
 
+ENV DISABLE_FILE=/vol/disable
+
 COPY LICENSE /LICENSE
 COPY --from=builder --chown=0:0 --chmod=755 /dockerheal /dockerheal
 
