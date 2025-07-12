@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
@@ -32,34 +33,42 @@ func (c *DockerhealClient) CheckOnce(ctx context.Context) error {
 		return err
 	}
 
-	for _, container := range containers {
-		containerDetails, err := c.client.ContainerInspect(ctx, container.ID)
+	for _, ct := range containers {
+		containerDetails, err := c.client.ContainerInspect(ctx, ct.ID)
 		if err != nil {
 			return err
 		}
 
-		if containerDetails.State.Dead || containerDetails.State.OOMKilled {
-			c.reportHealth(container.ID, "dead")
-			continue
-		}
-
 		if containerDetails.State.Health == nil {
+			c.reportNoHealth(containerDetails)
 			continue
 		}
 
-		c.reportHealth(container.ID, containerDetails.State.Health.Status)
+		c.reportHealth(ct.ID, containerDetails.State.Health.Status)
 	}
 
 	return nil
 }
 
-func (c *DockerhealClient) Listen(ctx context.Context) error {
-	msgChan, errChan := c.client.Events(ctx, events.ListOptions{})
+func (c *DockerhealClient) CheckBackground(ctx context.Context) {
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				err := c.CheckOnce(ctx)
+				if err != nil {
+					log.Printf("Error checking containers: %v", err)
+				}
+				time.Sleep(30 * time.Second)
+			}
+		}
+	}()
+}
 
-	err := c.CheckOnce(ctx)
-	if err != nil {
-		return err
-	}
+func (c *DockerhealClient) Listen(ctx context.Context) (err error) {
+	msgChan, errChan := c.client.Events(ctx, events.ListOptions{})
 
 	for {
 		select {
@@ -79,15 +88,29 @@ func (c *DockerhealClient) Listen(ctx context.Context) error {
 
 			c.reportHealth(msg.Actor.ID, healthStatus)
 		case err = <-errChan:
-			return err
+			return
 		}
 	}
 }
 
 func (c *DockerhealClient) reportHealth(containerID string, healthState string) {
 	log.Printf("Container %s reported health %s", containerID, healthState)
-	if healthState == "unhealthy" || healthState == "dead" {
+	if healthState == "unhealthy" || healthState == "exited" {
 		go c.restartContainer(containerID)
+	}
+}
+
+func (c *DockerhealClient) reportNoHealth(ct container.InspectResponse) {
+	log.Printf("Container %s reported status %s", ct.ID, ct.State.Status)
+
+	if ct.State.OOMKilled {
+		go c.restartContainer(ct.ID)
+		return
+	}
+
+	if ct.State.Status == container.StateExited && (ct.State.ExitCode != 0 || ct.HostConfig.RestartPolicy.IsAlways()) {
+		go c.restartContainer(ct.ID)
+		return
 	}
 }
 

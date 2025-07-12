@@ -13,6 +13,13 @@ func main() {
 
 	time.Sleep(60 * time.Second)
 
+	err = client.CheckOnce(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	client.CheckBackground(context.Background())
+
 	err = client.Listen(context.Background())
 	if err != nil {
 		panic(err)
